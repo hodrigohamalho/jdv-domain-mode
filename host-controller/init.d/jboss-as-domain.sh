@@ -16,7 +16,6 @@
 export JAVA_HOME
 
 # Load JBoss AS init.d configuration.
-JBOSS_CONF="/opt/jboss/jdv/bin/init.d/jboss-as.conf"
 if [ -z "$JBOSS_CONF" ]; then
   JBOSS_CONF="/etc/jboss-as/jboss-as.conf"
 fi
