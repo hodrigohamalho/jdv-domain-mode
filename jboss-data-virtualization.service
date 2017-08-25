@@ -1,0 +1,13 @@
+[Unit]
+Description=JBoss Data Virtualization Systemctl script
+After=NetworkManager.service
+
+[Service]
+Type=forking
+ExecStart=/opt/jboss/jdv/bin/init.d/jboss-as-domain.sh start
+ExecStop=/opt/jboss/jdv/bin/init.d/jboss-as-domain.sh stop
+ExecReload=/opt/jboss/jdv/bin/init.d/jboss-as-domain.sh restart
+PIDFile=/var/run/jboss/jboss-as-domain.pid
+
+[Install]
+WantedBy=multi-user.target
