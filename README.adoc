@@ -1,0 +1,95 @@
+= Jboss Data Virtualization in Domain Mode
+
+In domain controller copy the `domain-controller/init.d` folder here to your $JBOSS_HOME/bin directory, it will replace your current jboss init.d, so do a backup first :)
+
+Repeate the same process to your host-controller but use `host-controller/init.d`.
+
+== Preparação estrutura de diretórios e usuário    
+    
+    adduser jboss 
+    mkdir /opt/jdv    
+    mkdir /etc/jboss-as
+    mkdir /var/log/jboss
+    mkdir /var/run/jboss
+    chown -R jboss: /opt/jdv
+    chown -R jboss: /etc/jboss-as
+    chown -R jboss: /var/log/jboss
+    chown -R jboss: /var/run/jboss
+
+== Habilitando controle pelo sistemd e boot automatico com a máquina
+
+=== Domain
+
+    cat > /etc/jboss-as/jboss-as.conf <<EOF
+    JBOSS_HOME=/opt/jdv/jboss-data-virtualization
+    JBOSS_PIDFILE=/var/run/jboss/jboss-as-domain.pid
+    JBOSS_HOST_CONFIG=host.xml
+    JBOSS_ADDRESS_MANAGEMENT=10.255.0.82
+    JBOSS_USER=jboss
+    JBOSS_CONSOLE_LOG=/var/log/jboss/console.log    
+    EOF
+
+=== Host controller
+
+    cat > /etc/jboss-as/jboss-as.conf <<EOF
+    JBOSS_HOME=/opt/jdv/jboss-data-virtualization
+    JBOSS_PIDFILE=/var/run/jboss/jboss-as-domain.pid
+    JBOSS_HOST_CONFIG=host-slave.xml
+    JBOSS_MASTER_ADDRESS=10.255.0.82
+    JBOSS_PUBLIC_ADDRESS=10.255.0.83
+    JBOSS_USER=jboss
+    JBOSS_CONSOLE_LOG=/var/log/jboss/console.log    
+    EOF
+
+=== Adding Jboss Data Virtualization script to Systemd
+
+    JBOSS_HOME=/opt/jdv/jboss-data-virtualization
+    cat > /tmp/teste <<EOF
+    [Unit]
+    Description=JBoss Data Virtualization Systemctl script
+    After=NetworkManager.service
+    [Service]
+    Type=forking
+    ExecStart=$JBOSS_HOME/bin/init.d/jboss-as-domain.sh start
+    ExecStop=$JBOSS_HOME/bin/init.d/jboss-as-domain.sh stop
+    ExecReload=$JBOSS_HOME/bin/init.d/jboss-as-domain.sh restart
+    PIDFile=/var/run/jboss/jboss-as-domain.pid
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+
+NOTE: Systemd scripts doesn't suport variable replacement. 
+
+== Firewall
+
+Both hosts:
+
+    cat > /etc/firewalld/services/jboss-data-virtualization.xml
+    <?xml version="1.0" encoding="utf-8"?>
+    <service version="1.0">
+        <short>jboss-data-virtualization</short>
+        <port port="31000" protocol="tcp"/>
+        <port port="8080" protocol="tcp"/>
+        <port port="8443" protocol="udp"/>
+        <port port="8009" protocol="tcp"/>
+        <port port="4447" protocol="tcp"/>
+        <port port="9990" protocol="udp"/>
+        <port port="9999" protocol="tcp"/>
+    </service>
+    EOF
+
+    firewall-cmd --zone=public --add-service=jboss-data-virtualization
+    firewall-cmd --permanent --zone=public --add-service=jboss-data-virtualization
+    firewall-cmd --zone=public --list-services
+    firewall-cmd --permanent --zone=public --list-services
+
+If you are using ports offset adjust the values adding the offset.
+
+
+== Enable it in startup (Systemctl)
+
+    systemctl enable jboss-data-virtualization
+
+Now you can use
+
+    systemctl start|stop|restart|status jboss-data-virtualization
