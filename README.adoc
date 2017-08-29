@@ -4,7 +4,7 @@ In domain controller copy the `domain-controller/init.d` folder here to your $JB
 
 Repeate the same process to your host-controller but use `host-controller/init.d`.
 
-== Preparação estrutura de diretórios e usuário    
+== Preparing directory structure
     
     adduser jboss 
     mkdir /opt/jdv    
@@ -16,7 +16,7 @@ Repeate the same process to your host-controller but use `host-controller/init.d
     chown -R jboss: /var/log/jboss
     chown -R jboss: /var/run/jboss
 
-== Habilitando controle pelo sistemd e boot automatico com a máquina
+== Setup
 
 === Domain
 
